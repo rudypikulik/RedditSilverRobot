@@ -9,9 +9,9 @@ import requests
 #Initializes account instance from praw.
 reddit = praw.Reddit(client_id='client_id',
                      client_secret='client_secret',
-                     user_agent='raspberrypi:com.rudypikulik.redditsilverrobot:v1.2.1',
-                     username='xxxxxxxx',
-                     password='xxxxxxxx')
+                     user_agent='raspberrypi:com.rudypikulik.redditsilverrobot:v1.3.1’,
+                     username=‘xxxxxxxxxx’,
+                     password=‘xxxxxxxxxx’)
 
 # Initializes used_comments, give_counts, and receive_counts from files.
 try:
@@ -28,7 +28,7 @@ except:
     receive_counts = {}
 
 running = True
-sub = reddit.subreddit("all")
+sub = reddit.subreddit(“all”)
 comments = sub.stream.comments()
 
 # Updates logs for how many times someone has given/received silver.
@@ -60,7 +60,7 @@ def validate_comment(comment):
         return False
     if comment.author.name == "RedditSilverRobot":
         return False
-    if "!redditsilver" in comment.body.lower():
+    if “!redditsilverrobot” in comment.body.lower():
         return True
     return False
 
@@ -70,10 +70,21 @@ def validate_comment(comment):
 #    - Otherwise, it should be the person specified. Bot strips /u/ if present.
 def get_receiver(comment):
     text = comment.body.lower().split()
+    space_split = comment.body.lower().split(' ')
     try:
-        receiver = text[text.index("!redditsilver")+1]
+        # Kind of gross looking code below. Splits the comment exactly once at '!RedditSilverRobot',
+        # then figures out if the very next character is a new line. If it is, respond to parent.
+        # If it is not a new line, either respond to the designated person or the parent.
+
+        split = comment.body.lower().split(‘!redditsilverrobot’, 1)[1].replace(' ', '')
+        if split[0] is "\n":
+            receiver = comment.parent().author.name
+        else:
+            receiver = text[text.index(“!redditsilverrobot”)+1]
     except IndexError:
         receiver = comment.parent().author.name
+
+    # Now that the name is captured, remove any /u/ that the user may have included.
     if '/u/' in receiver:
         receiver = receiver.replace('/u/', '')
     if 'u/' in receiver:
@@ -110,7 +121,7 @@ def startStreaming():
                     comment.parent().reply(message)
                 else:
                     comment.reply(message)
-                print("Posted: " + user.name + " -> " + get_receiver(comment))
+                print(“> %s - Posted: %s -> %s” % (datetime.now, user.name, get_receiver(comment)))
                 time.sleep(2)
             except:
                 print("There was an error.")
