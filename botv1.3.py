@@ -60,7 +60,7 @@ def validate_comment(comment):
         return False
     if comment.author.name == "RedditSilverRobot":
         return False
-    if “!redditsilverrobot” in comment.body.lower():
+    if '!redditsilver' in comment.body.lower():
         return True
     return False
 
@@ -72,15 +72,15 @@ def get_receiver(comment):
     text = comment.body.lower().split()
     space_split = comment.body.lower().split(' ')
     try:
-        # Kind of gross looking code below. Splits the comment exactly once at '!RedditSilverRobot',
+        # Kind of gross looking code below. Splits the comment exactly once at '!RedditSilver',
         # then figures out if the very next character is a new line. If it is, respond to parent.
         # If it is not a new line, either respond to the designated person or the parent.
 
-        split = comment.body.lower().split(‘!redditsilverrobot’, 1)[1].replace(' ', '')
+        split = comment.body.lower().split('!redditsilver', 1)[1].replace(' ', '')
         if split[0] is "\n":
             receiver = comment.parent().author.name
         else:
-            receiver = text[text.index(“!redditsilverrobot”)+1]
+            receiver = text[text.index('!redditsilver')+1]
     except IndexError:
         receiver = comment.parent().author.name
 
@@ -121,7 +121,7 @@ def startStreaming():
                     comment.parent().reply(message)
                 else:
                     comment.reply(message)
-                print(“> %s - Posted: %s -> %s” % (datetime.now, user.name, get_receiver(comment)))
+                print("> %s - Posted: %s -> %s" % (datetime.now(), user.name, get_receiver(comment)))
                 time.sleep(2)
             except:
                 print("There was an error.")
