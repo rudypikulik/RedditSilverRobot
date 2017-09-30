@@ -20,6 +20,7 @@ def validate_comment(comment):
     #    - Must contain command
     #    - Must not have already replied
     #    - Must not reply to self
+    #    - Must not allow users to give silver to themselves
     if command in comment.body.lower():
         queue = pickle.load(open(file, "rb"))
         if not queue:
@@ -29,6 +30,9 @@ def validate_comment(comment):
             return False
         if comment.author.name is "RedditSilverRobot":
             _register_comment(comment, "Cannot respond to self.")
+            return False
+        if comment.author.name == get_receiver(comment)
+            _register_comment(comment, "You can't give RedditSilver to yourself.")
             return False
         if get_receiver(comment) == '[deleted]':
             _register_comment(comment, "Parent comment was deleted!")
