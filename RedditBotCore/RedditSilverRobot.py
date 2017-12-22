@@ -1,5 +1,5 @@
 # Created by Rudy Pikulik 04/17
-# Last Updated 07/17
+# Last Updated 12/17
 import praw
 import pickle
 import time
@@ -8,12 +8,13 @@ from Structures.Queue import Queue
 
 rsr = praw.Reddit(client_id='client_id',
                   client_secret='client_secret',
-                  user_agent='raspberrypi:com.rudypikulik.redditsilverrobot:v1.1.1',
+                  user_agent='raspberrypi:com.rudypikulik.redditsilverrobot:v1.6.1',
                   username=‘**********’,
                   password=‘**********’)
 
 file = 'RSRQueue.p'
 command = '!redditsilver'
+banned_subs = ["slayone"]
 
 def validate_comment(comment):
     # Decides whether or not to reply to a given comment.
@@ -25,14 +26,22 @@ def validate_comment(comment):
         if not queue:
             queue = Queue()
         data = pickle.load(open('RSRData.p', 'rb'))
+        # Already in the queue, don't add.
         if queue.contains(comment.id) or comment.id in [x[0] for x in data]:
             return False
+        # We wrote the comment, don't loop.
         if comment.author.name is "RedditSilverRobot":
             _register_comment(comment, "Cannot respond to self.")
             return False
+        # Parent comment was deleted, don't respond.
         if get_receiver(comment) == '[deleted]':
             _register_comment(comment, "Parent comment was deleted!")
             return False
+        # We've blacklisted this sub, don't respond.
+        if comment.subreddit.display_name.lower() in banned_subs:
+            _register_comment(comment, "Subreddit is blacklisted!")
+            return False
+
         comment.refresh()
         for child_comment in comment.replies:
             if child_comment.author.name == "RedditSilverRobot":
@@ -121,12 +130,12 @@ def _make_message(comment):
         s = ""
     else:
         s = "s"
-    message = "###[Here's your Reddit Silver, " + get_receiver(comment)
-    message += "!](http://i.imgur.com/x0jw93q.png \"Reddit Silver\") \n***\n"
+    message = "[**Here's your Reddit Silver, " + get_receiver(comment)
+    message += "!**](http://i.imgur.com/x0jw93q.png \"Reddit Silver\") \n\n"
     message += "/u/" + get_receiver(comment) + " has received silver " + str(silver_count)
     message += " time%s. (given by /u/" % s
     message += comment.author.name + ") "
-    message += "__[info](http://reddit.com/r/RedditSilverRobot)__"
+    message += "__[info](http://reddit.com/r/RedditSilverRobot)__" + comment.subreddit.display_name
     return message
 
 if __name__ == '__main__':
