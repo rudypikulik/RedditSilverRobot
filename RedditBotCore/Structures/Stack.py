@@ -32,7 +32,7 @@ class Stack:
     def contains(self, x):
         node = self.front
         while node is not None:
-            if node.get_data() is x:
+            if node.get_data() == x:
                 return True
             node = node.get_next()
         return False
